@@ -21,7 +21,7 @@ class App {
 		val moduleRootDirectory = Paths.get(path, moduleDirectoryName)
 
 		val moduleGeneratedSourcesDirectory =
-			moduleRootDirectory.resolve(Paths.get("build", "generated", "source", "kapt", "qaDebug"))
+			moduleRootDirectory.resolve(Paths.get("build", "generated", "source", "kapt", sourceSet))
 
 		logger.info("Build directory: $moduleGeneratedSourcesDirectory")
 
