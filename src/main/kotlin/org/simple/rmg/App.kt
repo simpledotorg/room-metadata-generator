@@ -1,5 +1,6 @@
 package org.simple.rmg
 
+import java.io.File
 import java.nio.file.Paths
 
 fun main(args: Array<String>) {
@@ -20,5 +21,15 @@ class App {
 			moduleRootDirectory.resolve(Paths.get("build", "generated", "source", "kapt", "qaDebug"))
 
 		logger.info("Build directory: $moduleGeneratedSourcesDirectory")
+
+		val generatedJavaSourceFiles = moduleGeneratedSourcesDirectory.toFile()
+			.walkTopDown()
+			.filter { it.isFile }
+			.filter(File::isJavaSourceFile)
+			.toList()
+
+		logger.info("All generated Java sources: ${generatedJavaSourceFiles.joinToString("\n")}")
 	}
 }
+
+private fun File.isJavaSourceFile(): Boolean = name.endsWith(".java")
