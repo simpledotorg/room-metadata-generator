@@ -35,22 +35,37 @@ class App {
 			.filter(CompilationUnit::isGeneratedRoomDao)
 			.toList()
 
-		logger.info("All generated Java sources:\n${generatedRoomDaoAsts.joinToString(separator = "\n", transform = CompilationUnit::className)}")
+		logger.info(
+			"All generated Java sources:\n${
+				generatedRoomDaoAsts.joinToString(
+					separator = "\n",
+					transform = CompilationUnit::className
+				)
+			}"
+		)
 
-		val methodInformations = generatedRoomDaoAsts
+		val methodInformationCsv = generatedRoomDaoAsts
 			.flatMap { compilationUnit ->
 				compilationUnit
 					.methods()
 					.map { methodDeclaration -> compilationUnit to methodDeclaration }
 			}
-			.map { (compilationUnit, methodDeclaration) ->
-				val methodRange = methodDeclaration.range
-				"${compilationUnit.className()}.${methodDeclaration.nameAsString} [${methodRange.get()}]"
+			.joinToString("\n") { (compilationUnit, methodDeclaration) ->
+				generateMethodCsvLine(
+					methodDeclaration = methodDeclaration,
+					compilationUnit = compilationUnit
+				)
 			}
-			.toList()
-			.joinToString("\n")
 
-		logger.info("Methods:\n$methodInformations")
+		logger.info(methodInformationCsv)
+	}
+
+	private fun generateMethodCsvLine(
+		methodDeclaration: MethodDeclaration,
+		compilationUnit: CompilationUnit
+	): String {
+		val methodRange = methodDeclaration.range.get()
+		return "${compilationUnit.className()},${methodDeclaration.nameAsString},${methodRange.begin.line},${methodRange.end.line}"
 	}
 }
 
