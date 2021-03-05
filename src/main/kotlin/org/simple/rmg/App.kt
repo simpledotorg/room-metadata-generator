@@ -7,14 +7,14 @@ import java.io.File
 import java.nio.file.Paths
 
 fun main(args: Array<String>) {
-	App().run(args[0], args[1])
+	App().run(args[0], args[1], args[2])
 }
 
 class App {
 
 	private val logger = logger<App>()
 
-	fun run(path: String, module: String) {
+	fun run(path: String, module: String, outputCsvPath: String) {
 		logger.info("Generate metadata for project: $path/$module")
 
 		val (moduleDirectoryName, sourceSet) = module.split(':')
@@ -50,7 +50,11 @@ class App {
 
 		logger.info("----- BEGIN DB METADATA -----\n\n${methodInformationCsv}\n\n----- END DB METADATA -----")
 
+		logger.info("Write generated metadata to $outputCsvPath")
 
+		with(File(outputCsvPath)) {
+			writeText(methodInformationCsv)
+		}
 	}
 
 	private fun generateMethodCsvLine(
