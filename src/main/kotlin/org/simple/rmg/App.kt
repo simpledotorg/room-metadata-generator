@@ -35,15 +35,6 @@ class App {
 			.filter(CompilationUnit::isGeneratedRoomDao)
 			.toList()
 
-		logger.info(
-			"All generated Java sources:\n${
-				generatedRoomDaoAsts.joinToString(
-					separator = "\n",
-					transform = CompilationUnit::className
-				)
-			}"
-		)
-
 		val methodInformationCsv = generatedRoomDaoAsts
 			.flatMap { compilationUnit ->
 				compilationUnit
@@ -57,7 +48,9 @@ class App {
 				)
 			}
 
-		logger.info(methodInformationCsv)
+		logger.info("----- BEGIN DB METADATA -----\n\n${methodInformationCsv}\n\n----- END DB METADATA -----")
+
+
 	}
 
 	private fun generateMethodCsvLine(
