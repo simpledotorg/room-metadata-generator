@@ -11,6 +11,12 @@ repositories {
 
 test {
     useJUnitPlatform()
+
+    testLogging {
+        showStackTraces = true
+        exceptionFormat = "full"
+    }
+
 }
 
 dependencies {
