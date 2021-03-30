@@ -25,15 +25,29 @@ class App {
 
 		logger.info("Build directory: $moduleGeneratedSourcesDirectory")
 
-		val generatedRoomDaoAsts = moduleGeneratedSourcesDirectory.toFile()
+		val generatedRoomDaoImplementations = moduleGeneratedSourcesDirectory.toFile()
 			.walkTopDown()
 			.filter { it.isFile }
 			.filter(File::isJavaSourceFile)
 			.map(File::readText)
 			.filter(String::containsRoomImport)
+			.toList()
+
+		val methodInformationCsv = generateRoomMetadataForSources(generatedRoomDaoImplementations)
+
+		logger.info("----- BEGIN DB METADATA -----\n\n${methodInformationCsv}\n\n----- END DB METADATA -----")
+
+		logger.info("Write generated metadata to $outputCsvPath")
+
+		with(File(outputCsvPath)) {
+			writeText(methodInformationCsv)
+		}
+	}
+
+	fun generateRoomMetadataForSources(daoImplementations: List<String>): String {
+		val generatedRoomDaoAsts = daoImplementations
 			.map { StaticJavaParser.parse(it) }
 			.filter(CompilationUnit::isGeneratedRoomDao)
-			.toList()
 
 		val methodInformationCsv = generatedRoomDaoAsts
 			.flatMap { compilationUnit ->
@@ -48,13 +62,7 @@ class App {
 				)
 			}
 
-		logger.info("----- BEGIN DB METADATA -----\n\n${methodInformationCsv}\n\n----- END DB METADATA -----")
-
-		logger.info("Write generated metadata to $outputCsvPath")
-
-		with(File(outputCsvPath)) {
-			writeText(methodInformationCsv)
-		}
+		return methodInformationCsv
 	}
 
 	private fun generateMethodCsvLine(
