@@ -50,15 +50,29 @@ class App {
 			.map { StaticJavaParser.parse(it) }
 			.filter(CompilationUnit::isGeneratedRoomDao)
 
-		val methodInformationCsv = generatedRoomDaoAsts
+		val methodInfos = generatedRoomDaoAsts
 			.flatMap { compilationUnit ->
 				compilationUnit
 					.methods()
 					.map { methodDeclaration -> MethodInfo(compilationUnit, methodDeclaration) }
 			}
-			.joinToString("\n", transform = ::generateMethodCsvLine)
 
-		return Succeeded(methodInformationCsv)
+		val foundMethodOverloads = findMethodsWithOverloads(methodInfos)
+
+		return when {
+			foundMethodOverloads.isNotEmpty() -> OverloadedMethodsFound(foundMethodOverloads)
+			else -> Succeeded(methodInfos.joinToString("\n", transform = ::generateMethodCsvLine))
+		}
+	}
+
+	private fun findMethodsWithOverloads(infos: List<MethodInfo>): Map<String, List<String>> {
+		return infos
+			.groupBy(
+				keySelector = { it.className },
+				valueTransform = { it.methodName }
+			)
+			.mapValues { (_, methods) -> methods.removeUniqueElements() }
+			.filterValues(List<String>::isNotEmpty)
 	}
 
 	private fun generateMethodCsvLine(
@@ -97,4 +111,14 @@ private data class MethodInfo(
 		methodName = methodDeclaration.nameAsString,
 		methodLineNumbers = methodDeclaration.range.get().begin.line..methodDeclaration.range.get().end.line
 	)
+}
+
+private fun List<String>.removeUniqueElements(): List<String> {
+	return associateBy(
+		keySelector = { it },
+		valueTransform = { methodName -> this.count { it == methodName } }
+	)
+		.filterValues { countOfMethodNames -> countOfMethodNames > 1 }
+		.keys
+		.toList()
 }
