@@ -64,6 +64,22 @@ class MetadataGenerationTest {
 		assertThat(roomMetadata).isEqualTo(Succeeded(expectedMetadata))
 	}
 
+	@Test
+	fun `generating metadata for dao with overloaded methods should surface the error`() {
+		// given
+		val daoImplementation = readResource("test_data/TeleconsultRecordRoomDao_Impl.java")
+
+		// when
+		val result = app.generateRoomMetadataForSources(listOf(daoImplementation))
+
+		// then
+		val expectedResult = OverloadedMethodsFound(mapOf(
+			"TeleconsultRecordRoomDao_Impl" to listOf("count")
+		))
+
+		assertThat(result).isEqualTo(expectedResult)
+	}
+
 	private fun readResource(resourcePath: String): String {
 		return javaClass.classLoader.getResourceAsStream(resourcePath)!!.reader().readText()
 	}
