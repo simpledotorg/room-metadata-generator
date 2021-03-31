@@ -7,12 +7,12 @@ import java.io.File
 import java.nio.file.Paths
 
 fun main(args: Array<String>) {
-	App().run(args[0], args[1], args[2])
+	RoomMetadataGenerator().run(args[0], args[1], args[2])
 }
 
-class App {
+class RoomMetadataGenerator {
 
-	private val logger = logger<App>()
+	private val logger = logger<RoomMetadataGenerator>()
 
 	fun run(path: String, module: String, outputCsvPath: String) {
 		logger.info("Generate metadata for project: $path/$module")

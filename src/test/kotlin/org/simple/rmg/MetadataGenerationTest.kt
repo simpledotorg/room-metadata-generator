@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 
 class MetadataGenerationTest {
 
-	private val app = App()
+	private val app = RoomMetadataGenerator()
 
 	@Test
 	fun `generating the metadata for a single generated dao should work as expected`() {
