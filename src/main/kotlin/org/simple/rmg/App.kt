@@ -54,24 +54,17 @@ class App {
 			.flatMap { compilationUnit ->
 				compilationUnit
 					.methods()
-					.map { methodDeclaration -> compilationUnit to methodDeclaration }
+					.map { methodDeclaration -> MethodInfo(compilationUnit, methodDeclaration) }
 			}
-			.joinToString("\n") { (compilationUnit, methodDeclaration) ->
-				generateMethodCsvLine(
-					methodDeclaration = methodDeclaration,
-					compilationUnit = compilationUnit
-				)
-			}
+			.joinToString("\n", transform = ::generateMethodCsvLine)
 
 		return Succeeded(methodInformationCsv)
 	}
 
 	private fun generateMethodCsvLine(
-		methodDeclaration: MethodDeclaration,
-		compilationUnit: CompilationUnit
+		methodInfo: MethodInfo
 	): String {
-		val methodRange = methodDeclaration.range.get()
-		return "${compilationUnit.className()},${methodDeclaration.nameAsString},${methodRange.begin.line},${methodRange.end.line}"
+		return "${methodInfo.className},${methodInfo.methodName},${methodInfo.methodLineNumbers.first},${methodInfo.methodLineNumbers.last}"
 	}
 }
 
@@ -91,4 +84,17 @@ private fun CompilationUnit.isGeneratedRoomDao(): Boolean {
 
 private fun CompilationUnit.methods(): List<MethodDeclaration> {
 	return types.first().methods
+}
+
+private data class MethodInfo(
+	val className: String,
+	val methodName: String,
+	val methodLineNumbers: IntRange
+) {
+
+	constructor(compilationUnit: CompilationUnit, methodDeclaration: MethodDeclaration) : this(
+		className = compilationUnit.className(),
+		methodName = methodDeclaration.nameAsString,
+		methodLineNumbers = methodDeclaration.range.get().begin.line..methodDeclaration.range.get().end.line
+	)
 }
