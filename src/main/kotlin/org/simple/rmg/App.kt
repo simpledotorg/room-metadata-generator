@@ -65,14 +65,14 @@ class App {
 		}
 	}
 
-	private fun findMethodsWithOverloads(infos: List<MethodInfo>): Map<String, List<String>> {
+	private fun findMethodsWithOverloads(infos: List<MethodInfo>): Map<String, Set<String>> {
 		return infos
 			.groupBy(
 				keySelector = { it.className },
 				valueTransform = { it.methodName }
 			)
 			.mapValues { (_, methods) -> methods.removeUniqueElements() }
-			.filterValues(List<String>::isNotEmpty)
+			.filterValues(Set<String>::isNotEmpty)
 	}
 
 	private fun generateMethodCsvLine(
@@ -113,12 +113,12 @@ private data class MethodInfo(
 	)
 }
 
-private fun List<String>.removeUniqueElements(): List<String> {
+private fun List<String>.removeUniqueElements(): Set<String> {
 	return associateBy(
 		keySelector = { it },
 		valueTransform = { methodName -> this.count { it == methodName } }
 	)
 		.filterValues { countOfMethodNames -> countOfMethodNames > 1 }
 		.keys
-		.toList()
+		.toSet()
 }

@@ -74,7 +74,7 @@ class MetadataGenerationTest {
 
 		// then
 		val expectedResult = OverloadedMethodsFound(mapOf(
-			"TeleconsultRecordRoomDao_Impl" to listOf("count")
+			"TeleconsultRecordRoomDao_Impl" to setOf("count")
 		))
 
 		assertThat(result).isEqualTo(expectedResult)
@@ -90,7 +90,7 @@ class MetadataGenerationTest {
 
 		// then
 		val expectedResult = OverloadedMethodsFound(mapOf(
-			"BloodPressureMeasurementRoomDao_Impl" to listOf("updateSyncStatus", "count")
+			"BloodPressureMeasurementRoomDao_Impl" to setOf("updateSyncStatus", "count")
 		))
 
 		assertThat(result).isEqualTo(expectedResult)
@@ -107,8 +107,8 @@ class MetadataGenerationTest {
 
 		// then
 		val expectedResult = OverloadedMethodsFound(mapOf(
-			"TeleconsultRecordRoomDao_Impl" to listOf("count"),
-			"BloodPressureMeasurementRoomDao_Impl" to listOf("updateSyncStatus", "count")
+			"TeleconsultRecordRoomDao_Impl" to setOf("count"),
+			"BloodPressureMeasurementRoomDao_Impl" to setOf("updateSyncStatus", "count")
 		))
 
 		assertThat(result).isEqualTo(expectedResult)
