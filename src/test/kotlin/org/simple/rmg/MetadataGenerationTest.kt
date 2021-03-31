@@ -30,7 +30,7 @@ class MetadataGenerationTest {
 			|UserRoomDao_Impl,userAndFacilityDetails,751,786
 		""".trimMargin()
 
-		assertThat(roomMetadata).isEqualTo(expectedMetadata)
+		assertThat(roomMetadata).isEqualTo(Succeeded(expectedMetadata))
 	}
 
 	@Test
@@ -61,7 +61,7 @@ class MetadataGenerationTest {
 			|OverdueAppointmentRoomDao_Impl,latestForPatient,647,884
 		""".trimMargin()
 
-		assertThat(roomMetadata).isEqualTo(expectedMetadata)
+		assertThat(roomMetadata).isEqualTo(Succeeded(expectedMetadata))
 	}
 
 	private fun readResource(resourcePath: String): String {

@@ -33,18 +33,19 @@ class App {
 			.filter(String::containsRoomImport)
 			.toList()
 
-		val methodInformationCsv = generateRoomMetadataForSources(generatedRoomDaoImplementations)
+		val result = generateRoomMetadataForSources(generatedRoomDaoImplementations)
 
-		logger.info("----- BEGIN DB METADATA -----\n\n${methodInformationCsv}\n\n----- END DB METADATA -----")
+		logger.info("----- BEGIN DB METADATA -----\n\n${result}\n\n----- END DB METADATA -----")
 
 		logger.info("Write generated metadata to $outputCsvPath")
 
 		with(File(outputCsvPath)) {
-			writeText(methodInformationCsv)
+			val csv = (result as Succeeded).metadata
+			writeText(csv)
 		}
 	}
 
-	fun generateRoomMetadataForSources(daoImplementations: List<String>): String {
+	fun generateRoomMetadataForSources(daoImplementations: List<String>): MetadataGenerationResult {
 		val generatedRoomDaoAsts = daoImplementations
 			.map { StaticJavaParser.parse(it) }
 			.filter(CompilationUnit::isGeneratedRoomDao)
@@ -62,7 +63,7 @@ class App {
 				)
 			}
 
-		return methodInformationCsv
+		return Succeeded(methodInformationCsv)
 	}
 
 	private fun generateMethodCsvLine(
