@@ -33,16 +33,33 @@ class App {
 			.filter(String::containsRoomImport)
 			.toList()
 
-		val result = generateRoomMetadataForSources(generatedRoomDaoImplementations)
+		when(val result = generateRoomMetadataForSources(generatedRoomDaoImplementations)) {
+			is OverloadedMethodsFound -> reportOverloadedMethodsFound(result.methods)
+			is Succeeded -> writeMetadataToOutputFile(result.metadata, outputCsvPath)
+		}
+	}
 
-		logger.info("----- BEGIN DB METADATA -----\n\n${result}\n\n----- END DB METADATA -----")
+	private fun writeMetadataToOutputFile(csv: String, outputCsvPath: String) {
+		logger.info("----- BEGIN DB METADATA -----\n\n${csv}\n\n----- END DB METADATA -----")
 
 		logger.info("Write generated metadata to $outputCsvPath")
 
 		with(File(outputCsvPath)) {
-			val csv = (result as Succeeded).metadata
 			writeText(csv)
 		}
+	}
+
+	private fun reportOverloadedMethodsFound(overloadedMethods: Map<String, Set<String>>) {
+		val errorMessage = overloadedMethods
+			.map { (className, methodNames) ->
+				val joinedMethodNames = methodNames.joinToString()
+				"$className : [$joinedMethodNames]"
+			}
+			.joinToString(separator = "\n", prefix = "Found overloaded methods:\n\n")
+
+		logger.error(errorMessage)
+
+		throw RuntimeException(errorMessage)
 	}
 
 	fun generateRoomMetadataForSources(daoImplementations: List<String>): MetadataGenerationResult {
