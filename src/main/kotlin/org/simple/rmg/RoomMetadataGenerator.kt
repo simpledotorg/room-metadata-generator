@@ -24,7 +24,7 @@ class RoomMetadataGenerator {
 			.walkTopDown()
 			.filter { it.isFile }
 			.filter(File::isJavaSourceFile)
-			.map(File::readText)
+			.map { it.readText() }
 			.filter(String::containsRoomImport)
 			.toList()
 
