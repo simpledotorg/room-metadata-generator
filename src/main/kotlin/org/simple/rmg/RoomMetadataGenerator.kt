@@ -14,7 +14,7 @@ class RoomMetadataGenerator {
 
 	private val logger = logger<RoomMetadataGenerator>()
 
-	fun run(projectPath: String, sourceSet: String, outputCsvName: String) {
+	fun run(projectPath: String, sourceSet: String, outputCsvPath: String) {
 		logger.info("Generate metadata for project: $projectPath/$sourceSet")
 
 		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "source", "kapt", sourceSet)
@@ -31,8 +31,9 @@ class RoomMetadataGenerator {
 		when(val result = generateRoomMetadataForSources(generatedRoomDaoImplementations)) {
 			is OverloadedMethodsFound -> reportOverloadedMethodsFound(result.methods)
 			is Succeeded -> {
-				val outputCsvPath = Paths.get(projectPath, "src", "main", "assets", outputCsvName)
-				writeMetadataToOutputFile(result.metadata, outputCsvPath.toString())
+				val outputCsvFile = Paths.get(outputCsvPath).toFile()
+				outputCsvFile.parentFile.mkdirs()
+				writeMetadataToOutputFile(result.metadata, outputCsvFile.path)
 			}
 		}
 	}
