@@ -2,13 +2,25 @@ package org.simple.rmg
 
 import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.NodeList
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.body.Parameter
+import com.github.javaparser.ast.expr.LambdaExpr
+import com.github.javaparser.ast.expr.MethodCallExpr
+import com.github.javaparser.ast.expr.StringLiteralExpr
+import com.github.javaparser.ast.stmt.BlockStmt
+import com.github.javaparser.ast.stmt.ReturnStmt
+import com.github.javaparser.ast.type.Type
 import java.io.File
 import java.nio.file.Paths
 
 fun main(args: Array<String>) {
-	RoomMetadataGenerator().run(args[0], args[1], args[2])
+//	RoomMetadataGenerator().run(args[0], args[1], args[2])
+	RoomMetadataGenerator().readMeasureMethod(args[0], args[1])
 }
+
+private val rxJavaTypes = setOf("Single", "Completable", "Observable", "Flowable")
 
 class RoomMetadataGenerator {
 
@@ -95,6 +107,77 @@ class RoomMetadataGenerator {
 		methodInfo: MethodInfo
 	): String {
 		return "${methodInfo.className},${methodInfo.methodName},${methodInfo.methodLineNumbers.first},${methodInfo.methodLineNumbers.last}"
+	}
+
+	fun readMeasureMethod(
+		projectPath: String,
+		sourceSet: String
+	): List<String> {
+		val measureMethodCodeTemplate = javaClass
+			.classLoader
+			.getResourceAsStream("MeasureMethod.java")!!
+			.reader()
+			.readText()
+		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "source", "kapt", sourceSet)
+
+		val generatedRoomDaoImplementations = moduleGeneratedSourcesDirectory.toFile()
+			.walkTopDown()
+			.filter { it.isFile }
+			.filter(File::isJavaSourceFile)
+			.map { it.readText() }
+			.filter(String::containsRoomImport)
+			.toList()
+
+		val generatedRoomDaoAsts = generatedRoomDaoImplementations
+			.map { StaticJavaParser.parse(it) }
+			.filter(CompilationUnit::isGeneratedRoomDao)
+
+		val transformedAsts = generatedRoomDaoAsts
+			.map { compilationUnit -> transformGeneratedDao(measureMethodCodeTemplate, compilationUnit) }
+			.map(CompilationUnit::toString)
+
+		return transformedAsts
+	}
+
+	fun transformGeneratedDao(
+		measureMethodCodeTemplate: String,
+		generatedDao: CompilationUnit
+	): CompilationUnit {
+		val classDeclaration = generatedDao.types.first() as ClassOrInterfaceDeclaration
+		val measureMethod = StaticJavaParser
+			.parse(measureMethodCodeTemplate.replace("\$CLASS_NAME\$", classDeclaration.nameAsString))
+			.types
+			.first()
+			.methods
+			.first()
+
+		classDeclaration
+			.methods
+			.filter { it.type.isNotRxType() && !it.type.isVoidType }
+			.onEachIndexed { index, methodDeclaration -> logger.debug("Index: $index, Method: ${methodDeclaration.nameAsString}") }
+			.onEach { methodDeclaration ->
+				val originalMethodBody = methodDeclaration.body.get().clone()
+				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
+
+				val newMethodBody = ReturnStmt(MethodCallExpr(
+					measureMethod.nameAsString,
+					StringLiteralExpr(methodDeclaration.nameAsString),
+					executionLambda
+				))
+
+				methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+			}
+
+		classDeclaration.addMember(measureMethod)
+
+		return generatedDao
+	}
+}
+
+private fun Type.isNotRxType(): Boolean {
+	return when {
+		isClassOrInterfaceType -> asClassOrInterfaceType().nameAsString !in rxJavaTypes
+		else -> true
 	}
 }
 
