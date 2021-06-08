@@ -29,6 +29,20 @@ class DaoTransformationTest {
 		assertThat(transformedDao).isEqualTo(expectedTransformedDao)
 	}
 
+	@Test
+	fun `room paging data sources should be skipped from method profiling`() {
+		// given
+		val daoImplementation = readResourceAsAst("test_data/transform/source/BloodPressureMeasurementRoomDao_Impl.java")
+
+		// when
+		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation)
+
+		// then
+		val expectedTransformedDao = readResourceAsAst("test_data/transform/modified/BloodPressureMeasurementRoomDao_Impl.java")
+
+		assertThat(transformedDao).isEqualTo(expectedTransformedDao)
+	}
+
 	private fun readResourceAsString(resourcePath: String): String {
 		return javaClass.classLoader.getResourceAsStream(resourcePath)!!.reader().readText()
 	}

@@ -156,7 +156,7 @@ class RoomMetadataGenerator {
 		// Synchronous non-void returns
 		classDeclaration
 			.methods
-			.filter { it.type.isNotRxType() && !it.type.isVoidType }
+			.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
 			.onEachIndexed { index, methodDeclaration -> logger.debug("Index: $index, Method: ${methodDeclaration.nameAsString}") }
 			.onEach { methodDeclaration ->
 				val originalMethodBody = methodDeclaration.body.get().clone()
@@ -176,7 +176,7 @@ class RoomMetadataGenerator {
 		// Synchronous void returns
 		classDeclaration
 			.methods
-			.filter { it.type.isNotRxType() && it.type.isVoidType }
+			.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
 			.onEachIndexed { index, methodDeclaration -> logger.debug("Index: $index, Method: ${methodDeclaration.nameAsString}") }
 			.onEach { methodDeclaration ->
 				val originalMethodBody = methodDeclaration.body.get().clone().apply {
@@ -198,7 +198,7 @@ class RoomMetadataGenerator {
 		// Rx return types
 		classDeclaration
 			.methods
-			.filter { it.type.isRxType() }
+			.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
 			.onEachIndexed { index, methodDeclaration -> logger.debug("Index: $index, Method: ${methodDeclaration.nameAsString}") }
 			.map { methodDeclaration ->
 				val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
@@ -247,6 +247,13 @@ private fun Type.isRxType(): Boolean {
 	return when {
 		isClassOrInterfaceType -> asClassOrInterfaceType().nameAsString in rxJavaTypes
 		else -> false
+	}
+}
+
+private fun Type.isNotRoomDatasource(): Boolean {
+	return when {
+		isClassOrInterfaceType -> asClassOrInterfaceType().nameWithScope != "DataSource.Factory"
+		else -> true
 	}
 }
 
