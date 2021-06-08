@@ -1,4 +1,4 @@
-package test_data;
+package org.simple.rmg;
 
 import android.database.Cursor;
 import androidx.room.EmptyResultSetException;

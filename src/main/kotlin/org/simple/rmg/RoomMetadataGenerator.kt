@@ -8,8 +8,10 @@ import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.body.Parameter
 import com.github.javaparser.ast.expr.LambdaExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
+import com.github.javaparser.ast.expr.NullLiteralExpr
 import com.github.javaparser.ast.expr.StringLiteralExpr
 import com.github.javaparser.ast.stmt.BlockStmt
+import com.github.javaparser.ast.stmt.ExpressionStmt
 import com.github.javaparser.ast.stmt.ReturnStmt
 import com.github.javaparser.ast.type.Type
 import java.io.File
@@ -151,6 +153,7 @@ class RoomMetadataGenerator {
 			.methods
 			.first()
 
+		// Synchronous non-void returns
 		classDeclaration
 			.methods
 			.filter { it.type.isNotRxType() && !it.type.isVoidType }
@@ -160,6 +163,26 @@ class RoomMetadataGenerator {
 				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
 
 				val newMethodBody = ReturnStmt(MethodCallExpr(
+					measureMethod.nameAsString,
+					StringLiteralExpr(methodDeclaration.nameAsString),
+					executionLambda
+				))
+
+				methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+			}
+
+		// Synchronous void returns
+		classDeclaration
+			.methods
+			.filter { it.type.isNotRxType() && it.type.isVoidType }
+			.onEachIndexed { index, methodDeclaration -> logger.debug("Index: $index, Method: ${methodDeclaration.nameAsString}") }
+			.onEach { methodDeclaration ->
+				val originalMethodBody = methodDeclaration.body.get().clone().apply {
+					addStatement(ReturnStmt(NullLiteralExpr()))
+				}
+				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
+
+				val newMethodBody = ExpressionStmt(MethodCallExpr(
 					measureMethod.nameAsString,
 					StringLiteralExpr(methodDeclaration.nameAsString),
 					executionLambda

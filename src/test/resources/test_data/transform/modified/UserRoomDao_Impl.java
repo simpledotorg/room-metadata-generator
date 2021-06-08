@@ -1,4 +1,4 @@
-package test_data;
+package org.simple.rmg;
 
 import android.database.Cursor;
 import androidx.room.EmptyResultSetException;
@@ -188,44 +188,50 @@ public final class UserRoomDao_Impl extends User.RoomDao {
 
   @Override
   public void deleteUser(final User user) {
-    __db.assertNotSuspendingTransaction();
-    __db.beginTransaction();
-    try {
-      __deletionAdapterOfUser.handle(user);
-      __db.setTransactionSuccessful();
-    } finally {
-      __db.endTransaction();
-    }
+    measureAndReport("deleteUser", () -> {
+      __db.assertNotSuspendingTransaction();
+      __db.beginTransaction();
+      try {
+        __deletionAdapterOfUser.handle(user);
+        __db.setTransactionSuccessful();
+      } finally {
+        __db.endTransaction();
+      }
+      return null;
+    });
   }
 
   @Override
   public void updateLoggedInStatusForUser(final UUID userUuId, final User.LoggedInStatus loggedInStatus) {
-    __db.assertNotSuspendingTransaction();
-    final SupportSQLiteStatement _stmt = __preparedStmtOfUpdateLoggedInStatusForUser.acquire();
-    int _argIndex = 1;
-    final String _tmp;
-    _tmp = __roomTypeConverter_1.fromEnum(loggedInStatus);
-    if (_tmp == null) {
-      _stmt.bindNull(_argIndex);
-    } else {
-      _stmt.bindString(_argIndex, _tmp);
-    }
-    _argIndex = 2;
-    final String _tmp_1;
-    _tmp_1 = __uuidRoomTypeConverter.fromUuid(userUuId);
-    if (_tmp_1 == null) {
-      _stmt.bindNull(_argIndex);
-    } else {
-      _stmt.bindString(_argIndex, _tmp_1);
-    }
-    __db.beginTransaction();
-    try {
-      _stmt.executeUpdateDelete();
-      __db.setTransactionSuccessful();
-    } finally {
-      __db.endTransaction();
-      __preparedStmtOfUpdateLoggedInStatusForUser.release(_stmt);
-    }
+    measureAndReport("updateLoggedInStatusForUser", () -> {
+      __db.assertNotSuspendingTransaction();
+      final SupportSQLiteStatement _stmt = __preparedStmtOfUpdateLoggedInStatusForUser.acquire();
+      int _argIndex = 1;
+      final String _tmp;
+      _tmp = __roomTypeConverter_1.fromEnum(loggedInStatus);
+      if (_tmp == null) {
+        _stmt.bindNull(_argIndex);
+      } else {
+        _stmt.bindString(_argIndex, _tmp);
+      }
+      _argIndex = 2;
+      final String _tmp_1;
+      _tmp_1 = __uuidRoomTypeConverter.fromUuid(userUuId);
+      if (_tmp_1 == null) {
+        _stmt.bindNull(_argIndex);
+      } else {
+        _stmt.bindString(_argIndex, _tmp_1);
+      }
+      __db.beginTransaction();
+      try {
+        _stmt.executeUpdateDelete();
+        __db.setTransactionSuccessful();
+      } finally {
+        __db.endTransaction();
+        __preparedStmtOfUpdateLoggedInStatusForUser.release(_stmt);
+      }
+      return null;
+    });
   }
 
   @Override
