@@ -156,6 +156,7 @@ class RoomMetadataGenerator {
 		// Synchronous non-void returns
 		classDeclaration
 			.methods
+			.filter(MethodDeclaration::isOverriddenPublicMethod)
 			.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
 			.onEach { methodDeclaration ->
 				val originalMethodBody = methodDeclaration.body.get().clone()
@@ -175,6 +176,7 @@ class RoomMetadataGenerator {
 		// Synchronous void returns
 		classDeclaration
 			.methods
+			.filter(MethodDeclaration::isOverriddenPublicMethod)
 			.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
 			.onEach { methodDeclaration ->
 				val originalMethodBody = methodDeclaration.body.get().clone().apply {
@@ -196,6 +198,7 @@ class RoomMetadataGenerator {
 		// Rx return types
 		classDeclaration
 			.methods
+			.filter(MethodDeclaration::isOverriddenPublicMethod)
 			.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
 			.map { methodDeclaration ->
 				val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
@@ -252,6 +255,10 @@ private fun Type.isNotRoomDatasource(): Boolean {
 		isClassOrInterfaceType -> asClassOrInterfaceType().nameWithScope != "DataSource.Factory"
 		else -> true
 	}
+}
+
+private fun MethodDeclaration.isOverriddenPublicMethod(): Boolean {
+	return this.isPublic && isAnnotationPresent("Override")
 }
 
 private fun File.isJavaSourceFile(): Boolean = name.endsWith(".java")
