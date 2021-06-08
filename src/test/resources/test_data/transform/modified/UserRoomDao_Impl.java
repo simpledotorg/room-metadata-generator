@@ -267,76 +267,78 @@ public final class UserRoomDao_Impl extends User.RoomDao {
 
       @Override
       public List<User> call() throws Exception {
-        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
-        try {
-          final int _cursorIndexOfUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "uuid");
-          final int _cursorIndexOfFullName = CursorUtil.getColumnIndexOrThrow(_cursor, "fullName");
-          final int _cursorIndexOfPhoneNumber = CursorUtil.getColumnIndexOrThrow(_cursor, "phoneNumber");
-          final int _cursorIndexOfPinDigest = CursorUtil.getColumnIndexOrThrow(_cursor, "pinDigest");
-          final int _cursorIndexOfStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "status");
-          final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
-          final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
-          final int _cursorIndexOfLoggedInStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "loggedInStatus");
-          final int _cursorIndexOfRegistrationFacilityUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "registrationFacilityUuid");
-          final int _cursorIndexOfCurrentFacilityUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "currentFacilityUuid");
-          final int _cursorIndexOfTeleconsultPhoneNumber = CursorUtil.getColumnIndexOrThrow(_cursor, "teleconsultPhoneNumber");
-          final int _cursorIndexOfCanTeleconsult = CursorUtil.getColumnIndexOrThrow(_cursor, "capability_canTeleconsult");
-          final List<User> _result = new ArrayList<User>(_cursor.getCount());
-          while (_cursor.moveToNext()) {
-            final User _item;
-            final UUID _tmpUuid;
-            final String _tmp;
-            _tmp = _cursor.getString(_cursorIndexOfUuid);
-            _tmpUuid = __uuidRoomTypeConverter.toUuid(_tmp);
-            final String _tmpFullName;
-            _tmpFullName = _cursor.getString(_cursorIndexOfFullName);
-            final String _tmpPhoneNumber;
-            _tmpPhoneNumber = _cursor.getString(_cursorIndexOfPhoneNumber);
-            final String _tmpPinDigest;
-            _tmpPinDigest = _cursor.getString(_cursorIndexOfPinDigest);
-            final UserStatus _tmpStatus;
-            final String _tmp_1;
-            _tmp_1 = _cursor.getString(_cursorIndexOfStatus);
-            _tmpStatus = __roomTypeConverter.toEnum(_tmp_1);
-            final Instant _tmpCreatedAt;
-            final String _tmp_2;
-            _tmp_2 = _cursor.getString(_cursorIndexOfCreatedAt);
-            _tmpCreatedAt = __instantRoomTypeConverter.toInstant(_tmp_2);
-            final Instant _tmpUpdatedAt;
-            final String _tmp_3;
-            _tmp_3 = _cursor.getString(_cursorIndexOfUpdatedAt);
-            _tmpUpdatedAt = __instantRoomTypeConverter.toInstant(_tmp_3);
-            final User.LoggedInStatus _tmpLoggedInStatus;
-            final String _tmp_4;
-            _tmp_4 = _cursor.getString(_cursorIndexOfLoggedInStatus);
-            _tmpLoggedInStatus = __roomTypeConverter_1.toEnum(_tmp_4);
-            final UUID _tmpRegistrationFacilityUuid;
-            final String _tmp_5;
-            _tmp_5 = _cursor.getString(_cursorIndexOfRegistrationFacilityUuid);
-            _tmpRegistrationFacilityUuid = __uuidRoomTypeConverter.toUuid(_tmp_5);
-            final UUID _tmpCurrentFacilityUuid;
-            final String _tmp_6;
-            _tmp_6 = _cursor.getString(_cursorIndexOfCurrentFacilityUuid);
-            _tmpCurrentFacilityUuid = __uuidRoomTypeConverter.toUuid(_tmp_6);
-            final String _tmpTeleconsultPhoneNumber;
-            _tmpTeleconsultPhoneNumber = _cursor.getString(_cursorIndexOfTeleconsultPhoneNumber);
-            final User.Capabilities _tmpCapabilities;
-            if (!(_cursor.isNull(_cursorIndexOfCanTeleconsult))) {
-              final User.CapabilityStatus _tmpCanTeleconsult;
-              final String _tmp_7;
-              _tmp_7 = _cursor.getString(_cursorIndexOfCanTeleconsult);
-              _tmpCanTeleconsult = __roomTypeConverter_2.toEnum(_tmp_7);
-              _tmpCapabilities = new User.Capabilities(_tmpCanTeleconsult);
-            } else {
-              _tmpCapabilities = null;
+        return measureAndReport("user", () -> {
+          final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+          try {
+            final int _cursorIndexOfUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "uuid");
+            final int _cursorIndexOfFullName = CursorUtil.getColumnIndexOrThrow(_cursor, "fullName");
+            final int _cursorIndexOfPhoneNumber = CursorUtil.getColumnIndexOrThrow(_cursor, "phoneNumber");
+            final int _cursorIndexOfPinDigest = CursorUtil.getColumnIndexOrThrow(_cursor, "pinDigest");
+            final int _cursorIndexOfStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "status");
+            final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
+            final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
+            final int _cursorIndexOfLoggedInStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "loggedInStatus");
+            final int _cursorIndexOfRegistrationFacilityUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "registrationFacilityUuid");
+            final int _cursorIndexOfCurrentFacilityUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "currentFacilityUuid");
+            final int _cursorIndexOfTeleconsultPhoneNumber = CursorUtil.getColumnIndexOrThrow(_cursor, "teleconsultPhoneNumber");
+            final int _cursorIndexOfCanTeleconsult = CursorUtil.getColumnIndexOrThrow(_cursor, "capability_canTeleconsult");
+            final List<User> _result = new ArrayList<User>(_cursor.getCount());
+            while (_cursor.moveToNext()) {
+              final User _item;
+              final UUID _tmpUuid;
+              final String _tmp;
+              _tmp = _cursor.getString(_cursorIndexOfUuid);
+              _tmpUuid = __uuidRoomTypeConverter.toUuid(_tmp);
+              final String _tmpFullName;
+              _tmpFullName = _cursor.getString(_cursorIndexOfFullName);
+              final String _tmpPhoneNumber;
+              _tmpPhoneNumber = _cursor.getString(_cursorIndexOfPhoneNumber);
+              final String _tmpPinDigest;
+              _tmpPinDigest = _cursor.getString(_cursorIndexOfPinDigest);
+              final UserStatus _tmpStatus;
+              final String _tmp_1;
+              _tmp_1 = _cursor.getString(_cursorIndexOfStatus);
+              _tmpStatus = __roomTypeConverter.toEnum(_tmp_1);
+              final Instant _tmpCreatedAt;
+              final String _tmp_2;
+              _tmp_2 = _cursor.getString(_cursorIndexOfCreatedAt);
+              _tmpCreatedAt = __instantRoomTypeConverter.toInstant(_tmp_2);
+              final Instant _tmpUpdatedAt;
+              final String _tmp_3;
+              _tmp_3 = _cursor.getString(_cursorIndexOfUpdatedAt);
+              _tmpUpdatedAt = __instantRoomTypeConverter.toInstant(_tmp_3);
+              final User.LoggedInStatus _tmpLoggedInStatus;
+              final String _tmp_4;
+              _tmp_4 = _cursor.getString(_cursorIndexOfLoggedInStatus);
+              _tmpLoggedInStatus = __roomTypeConverter_1.toEnum(_tmp_4);
+              final UUID _tmpRegistrationFacilityUuid;
+              final String _tmp_5;
+              _tmp_5 = _cursor.getString(_cursorIndexOfRegistrationFacilityUuid);
+              _tmpRegistrationFacilityUuid = __uuidRoomTypeConverter.toUuid(_tmp_5);
+              final UUID _tmpCurrentFacilityUuid;
+              final String _tmp_6;
+              _tmp_6 = _cursor.getString(_cursorIndexOfCurrentFacilityUuid);
+              _tmpCurrentFacilityUuid = __uuidRoomTypeConverter.toUuid(_tmp_6);
+              final String _tmpTeleconsultPhoneNumber;
+              _tmpTeleconsultPhoneNumber = _cursor.getString(_cursorIndexOfTeleconsultPhoneNumber);
+              final User.Capabilities _tmpCapabilities;
+              if (!(_cursor.isNull(_cursorIndexOfCanTeleconsult))) {
+                final User.CapabilityStatus _tmpCanTeleconsult;
+                final String _tmp_7;
+                _tmp_7 = _cursor.getString(_cursorIndexOfCanTeleconsult);
+                _tmpCanTeleconsult = __roomTypeConverter_2.toEnum(_tmp_7);
+                _tmpCapabilities = new User.Capabilities(_tmpCanTeleconsult);
+              } else {
+                _tmpCapabilities = null;
+              }
+              _item = new User(_tmpUuid, _tmpFullName, _tmpPhoneNumber, _tmpPinDigest, _tmpStatus, _tmpCreatedAt, _tmpUpdatedAt, _tmpLoggedInStatus, _tmpRegistrationFacilityUuid, _tmpCurrentFacilityUuid, _tmpTeleconsultPhoneNumber, _tmpCapabilities);
+              _result.add(_item);
             }
-            _item = new User(_tmpUuid, _tmpFullName, _tmpPhoneNumber, _tmpPinDigest, _tmpStatus, _tmpCreatedAt, _tmpUpdatedAt, _tmpLoggedInStatus, _tmpRegistrationFacilityUuid, _tmpCurrentFacilityUuid, _tmpTeleconsultPhoneNumber, _tmpCapabilities);
-            _result.add(_item);
+            return _result;
+          } finally {
+            _cursor.close();
           }
-          return _result;
-        } finally {
-          _cursor.close();
-        }
+        });
       }
 
       @Override
@@ -354,27 +356,29 @@ public final class UserRoomDao_Impl extends User.RoomDao {
 
       @Override
       public Integer call() throws Exception {
-        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
-        try {
-          final Integer _result;
-          if (_cursor.moveToFirst()) {
-            final Integer _tmp;
-            if (_cursor.isNull(0)) {
-              _tmp = null;
+        return measureAndReport("userCount", () -> {
+          final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+          try {
+            final Integer _result;
+            if (_cursor.moveToFirst()) {
+              final Integer _tmp;
+              if (_cursor.isNull(0)) {
+                _tmp = null;
+              } else {
+                _tmp = _cursor.getInt(0);
+              }
+              _result = _tmp;
             } else {
-              _tmp = _cursor.getInt(0);
+              _result = null;
             }
-            _result = _tmp;
-          } else {
-            _result = null;
+            if (_result == null) {
+              throw new EmptyResultSetException("Query returned empty result set: " + _statement.getSql());
+            }
+            return _result;
+          } finally {
+            _cursor.close();
           }
-          if (_result == null) {
-            throw new EmptyResultSetException("Query returned empty result set: " + _statement.getSql());
-          }
-          return _result;
-        } finally {
-          _cursor.close();
-        }
+        });
       }
 
       @Override
@@ -392,112 +396,114 @@ public final class UserRoomDao_Impl extends User.RoomDao {
 
       @Override
       public Facility call() throws Exception {
-        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
-        try {
-          final int _cursorIndexOfUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "uuid");
-          final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
-          final int _cursorIndexOfFacilityType = CursorUtil.getColumnIndexOrThrow(_cursor, "facilityType");
-          final int _cursorIndexOfStreetAddress = CursorUtil.getColumnIndexOrThrow(_cursor, "streetAddress");
-          final int _cursorIndexOfVillageOrColony = CursorUtil.getColumnIndexOrThrow(_cursor, "villageOrColony");
-          final int _cursorIndexOfDistrict = CursorUtil.getColumnIndexOrThrow(_cursor, "district");
-          final int _cursorIndexOfState = CursorUtil.getColumnIndexOrThrow(_cursor, "state");
-          final int _cursorIndexOfCountry = CursorUtil.getColumnIndexOrThrow(_cursor, "country");
-          final int _cursorIndexOfPinCode = CursorUtil.getColumnIndexOrThrow(_cursor, "pinCode");
-          final int _cursorIndexOfProtocolUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "protocolUuid");
-          final int _cursorIndexOfGroupUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "groupUuid");
-          final int _cursorIndexOfLatitude = CursorUtil.getColumnIndexOrThrow(_cursor, "location_latitude");
-          final int _cursorIndexOfLongitude = CursorUtil.getColumnIndexOrThrow(_cursor, "location_longitude");
-          final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
-          final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
-          final int _cursorIndexOfDeletedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "deletedAt");
-          final int _cursorIndexOfSyncStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "syncStatus");
-          final int _cursorIndexOfDiabetesManagementEnabled = CursorUtil.getColumnIndexOrThrow(_cursor, "config_diabetesManagementEnabled");
-          final int _cursorIndexOfTeleconsultationEnabled = CursorUtil.getColumnIndexOrThrow(_cursor, "config_teleconsultationEnabled");
-          final int _cursorIndexOfSyncGroup = CursorUtil.getColumnIndexOrThrow(_cursor, "syncGroup");
-          final Facility _result;
-          if (_cursor.moveToFirst()) {
-            final UUID _tmpUuid;
-            final String _tmp;
-            _tmp = _cursor.getString(_cursorIndexOfUuid);
-            _tmpUuid = __uuidRoomTypeConverter.toUuid(_tmp);
-            final String _tmpName;
-            _tmpName = _cursor.getString(_cursorIndexOfName);
-            final String _tmpFacilityType;
-            _tmpFacilityType = _cursor.getString(_cursorIndexOfFacilityType);
-            final String _tmpStreetAddress;
-            _tmpStreetAddress = _cursor.getString(_cursorIndexOfStreetAddress);
-            final String _tmpVillageOrColony;
-            _tmpVillageOrColony = _cursor.getString(_cursorIndexOfVillageOrColony);
-            final String _tmpDistrict;
-            _tmpDistrict = _cursor.getString(_cursorIndexOfDistrict);
-            final String _tmpState;
-            _tmpState = _cursor.getString(_cursorIndexOfState);
-            final String _tmpCountry;
-            _tmpCountry = _cursor.getString(_cursorIndexOfCountry);
-            final String _tmpPinCode;
-            _tmpPinCode = _cursor.getString(_cursorIndexOfPinCode);
-            final UUID _tmpProtocolUuid;
-            final String _tmp_1;
-            _tmp_1 = _cursor.getString(_cursorIndexOfProtocolUuid);
-            _tmpProtocolUuid = __uuidRoomTypeConverter.toUuid(_tmp_1);
-            final UUID _tmpGroupUuid;
-            final String _tmp_2;
-            _tmp_2 = _cursor.getString(_cursorIndexOfGroupUuid);
-            _tmpGroupUuid = __uuidRoomTypeConverter.toUuid(_tmp_2);
-            final Instant _tmpCreatedAt;
-            final String _tmp_3;
-            _tmp_3 = _cursor.getString(_cursorIndexOfCreatedAt);
-            _tmpCreatedAt = __instantRoomTypeConverter.toInstant(_tmp_3);
-            final Instant _tmpUpdatedAt;
-            final String _tmp_4;
-            _tmp_4 = _cursor.getString(_cursorIndexOfUpdatedAt);
-            _tmpUpdatedAt = __instantRoomTypeConverter.toInstant(_tmp_4);
-            final Instant _tmpDeletedAt;
-            final String _tmp_5;
-            _tmp_5 = _cursor.getString(_cursorIndexOfDeletedAt);
-            _tmpDeletedAt = __instantRoomTypeConverter.toInstant(_tmp_5);
-            final SyncStatus _tmpSyncStatus;
-            final String _tmp_6;
-            _tmp_6 = _cursor.getString(_cursorIndexOfSyncStatus);
-            _tmpSyncStatus = __roomTypeConverter_3.toEnum(_tmp_6);
-            final String _tmpSyncGroup;
-            _tmpSyncGroup = _cursor.getString(_cursorIndexOfSyncGroup);
-            final Coordinates _tmpLocation;
-            if (!(_cursor.isNull(_cursorIndexOfLatitude) && _cursor.isNull(_cursorIndexOfLongitude))) {
-              final double _tmpLatitude;
-              _tmpLatitude = _cursor.getDouble(_cursorIndexOfLatitude);
-              final double _tmpLongitude;
-              _tmpLongitude = _cursor.getDouble(_cursorIndexOfLongitude);
-              _tmpLocation = new Coordinates(_tmpLatitude, _tmpLongitude);
-            } else {
-              _tmpLocation = null;
-            }
-            final FacilityConfig _tmpConfig;
-            if (!(_cursor.isNull(_cursorIndexOfDiabetesManagementEnabled) && _cursor.isNull(_cursorIndexOfTeleconsultationEnabled))) {
-              final boolean _tmpDiabetesManagementEnabled;
-              final int _tmp_7;
-              _tmp_7 = _cursor.getInt(_cursorIndexOfDiabetesManagementEnabled);
-              _tmpDiabetesManagementEnabled = _tmp_7 != 0;
-              final Boolean _tmpTeleconsultationEnabled;
-              final Integer _tmp_8;
-              if (_cursor.isNull(_cursorIndexOfTeleconsultationEnabled)) {
-                _tmp_8 = null;
+        return measureAndReport("currentFacility", () -> {
+          final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+          try {
+            final int _cursorIndexOfUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "uuid");
+            final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
+            final int _cursorIndexOfFacilityType = CursorUtil.getColumnIndexOrThrow(_cursor, "facilityType");
+            final int _cursorIndexOfStreetAddress = CursorUtil.getColumnIndexOrThrow(_cursor, "streetAddress");
+            final int _cursorIndexOfVillageOrColony = CursorUtil.getColumnIndexOrThrow(_cursor, "villageOrColony");
+            final int _cursorIndexOfDistrict = CursorUtil.getColumnIndexOrThrow(_cursor, "district");
+            final int _cursorIndexOfState = CursorUtil.getColumnIndexOrThrow(_cursor, "state");
+            final int _cursorIndexOfCountry = CursorUtil.getColumnIndexOrThrow(_cursor, "country");
+            final int _cursorIndexOfPinCode = CursorUtil.getColumnIndexOrThrow(_cursor, "pinCode");
+            final int _cursorIndexOfProtocolUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "protocolUuid");
+            final int _cursorIndexOfGroupUuid = CursorUtil.getColumnIndexOrThrow(_cursor, "groupUuid");
+            final int _cursorIndexOfLatitude = CursorUtil.getColumnIndexOrThrow(_cursor, "location_latitude");
+            final int _cursorIndexOfLongitude = CursorUtil.getColumnIndexOrThrow(_cursor, "location_longitude");
+            final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
+            final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
+            final int _cursorIndexOfDeletedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "deletedAt");
+            final int _cursorIndexOfSyncStatus = CursorUtil.getColumnIndexOrThrow(_cursor, "syncStatus");
+            final int _cursorIndexOfDiabetesManagementEnabled = CursorUtil.getColumnIndexOrThrow(_cursor, "config_diabetesManagementEnabled");
+            final int _cursorIndexOfTeleconsultationEnabled = CursorUtil.getColumnIndexOrThrow(_cursor, "config_teleconsultationEnabled");
+            final int _cursorIndexOfSyncGroup = CursorUtil.getColumnIndexOrThrow(_cursor, "syncGroup");
+            final Facility _result;
+            if (_cursor.moveToFirst()) {
+              final UUID _tmpUuid;
+              final String _tmp;
+              _tmp = _cursor.getString(_cursorIndexOfUuid);
+              _tmpUuid = __uuidRoomTypeConverter.toUuid(_tmp);
+              final String _tmpName;
+              _tmpName = _cursor.getString(_cursorIndexOfName);
+              final String _tmpFacilityType;
+              _tmpFacilityType = _cursor.getString(_cursorIndexOfFacilityType);
+              final String _tmpStreetAddress;
+              _tmpStreetAddress = _cursor.getString(_cursorIndexOfStreetAddress);
+              final String _tmpVillageOrColony;
+              _tmpVillageOrColony = _cursor.getString(_cursorIndexOfVillageOrColony);
+              final String _tmpDistrict;
+              _tmpDistrict = _cursor.getString(_cursorIndexOfDistrict);
+              final String _tmpState;
+              _tmpState = _cursor.getString(_cursorIndexOfState);
+              final String _tmpCountry;
+              _tmpCountry = _cursor.getString(_cursorIndexOfCountry);
+              final String _tmpPinCode;
+              _tmpPinCode = _cursor.getString(_cursorIndexOfPinCode);
+              final UUID _tmpProtocolUuid;
+              final String _tmp_1;
+              _tmp_1 = _cursor.getString(_cursorIndexOfProtocolUuid);
+              _tmpProtocolUuid = __uuidRoomTypeConverter.toUuid(_tmp_1);
+              final UUID _tmpGroupUuid;
+              final String _tmp_2;
+              _tmp_2 = _cursor.getString(_cursorIndexOfGroupUuid);
+              _tmpGroupUuid = __uuidRoomTypeConverter.toUuid(_tmp_2);
+              final Instant _tmpCreatedAt;
+              final String _tmp_3;
+              _tmp_3 = _cursor.getString(_cursorIndexOfCreatedAt);
+              _tmpCreatedAt = __instantRoomTypeConverter.toInstant(_tmp_3);
+              final Instant _tmpUpdatedAt;
+              final String _tmp_4;
+              _tmp_4 = _cursor.getString(_cursorIndexOfUpdatedAt);
+              _tmpUpdatedAt = __instantRoomTypeConverter.toInstant(_tmp_4);
+              final Instant _tmpDeletedAt;
+              final String _tmp_5;
+              _tmp_5 = _cursor.getString(_cursorIndexOfDeletedAt);
+              _tmpDeletedAt = __instantRoomTypeConverter.toInstant(_tmp_5);
+              final SyncStatus _tmpSyncStatus;
+              final String _tmp_6;
+              _tmp_6 = _cursor.getString(_cursorIndexOfSyncStatus);
+              _tmpSyncStatus = __roomTypeConverter_3.toEnum(_tmp_6);
+              final String _tmpSyncGroup;
+              _tmpSyncGroup = _cursor.getString(_cursorIndexOfSyncGroup);
+              final Coordinates _tmpLocation;
+              if (!(_cursor.isNull(_cursorIndexOfLatitude) && _cursor.isNull(_cursorIndexOfLongitude))) {
+                final double _tmpLatitude;
+                _tmpLatitude = _cursor.getDouble(_cursorIndexOfLatitude);
+                final double _tmpLongitude;
+                _tmpLongitude = _cursor.getDouble(_cursorIndexOfLongitude);
+                _tmpLocation = new Coordinates(_tmpLatitude, _tmpLongitude);
               } else {
-                _tmp_8 = _cursor.getInt(_cursorIndexOfTeleconsultationEnabled);
+                _tmpLocation = null;
               }
-              _tmpTeleconsultationEnabled = _tmp_8 == null ? null : _tmp_8 != 0;
-              _tmpConfig = new FacilityConfig(_tmpDiabetesManagementEnabled, _tmpTeleconsultationEnabled);
+              final FacilityConfig _tmpConfig;
+              if (!(_cursor.isNull(_cursorIndexOfDiabetesManagementEnabled) && _cursor.isNull(_cursorIndexOfTeleconsultationEnabled))) {
+                final boolean _tmpDiabetesManagementEnabled;
+                final int _tmp_7;
+                _tmp_7 = _cursor.getInt(_cursorIndexOfDiabetesManagementEnabled);
+                _tmpDiabetesManagementEnabled = _tmp_7 != 0;
+                final Boolean _tmpTeleconsultationEnabled;
+                final Integer _tmp_8;
+                if (_cursor.isNull(_cursorIndexOfTeleconsultationEnabled)) {
+                  _tmp_8 = null;
+                } else {
+                  _tmp_8 = _cursor.getInt(_cursorIndexOfTeleconsultationEnabled);
+                }
+                _tmpTeleconsultationEnabled = _tmp_8 == null ? null : _tmp_8 != 0;
+                _tmpConfig = new FacilityConfig(_tmpDiabetesManagementEnabled, _tmpTeleconsultationEnabled);
+              } else {
+                _tmpConfig = null;
+              }
+              _result = new Facility(_tmpUuid, _tmpName, _tmpFacilityType, _tmpStreetAddress, _tmpVillageOrColony, _tmpDistrict, _tmpState, _tmpCountry, _tmpPinCode, _tmpProtocolUuid, _tmpGroupUuid, _tmpLocation, _tmpCreatedAt, _tmpUpdatedAt, _tmpSyncStatus, _tmpDeletedAt, _tmpConfig, _tmpSyncGroup);
             } else {
-              _tmpConfig = null;
+              _result = null;
             }
-            _result = new Facility(_tmpUuid, _tmpName, _tmpFacilityType, _tmpStreetAddress, _tmpVillageOrColony, _tmpDistrict, _tmpState, _tmpCountry, _tmpPinCode, _tmpProtocolUuid, _tmpGroupUuid, _tmpLocation, _tmpCreatedAt, _tmpUpdatedAt, _tmpSyncStatus, _tmpDeletedAt, _tmpConfig, _tmpSyncGroup);
-          } else {
-            _result = null;
+            return _result;
+          } finally {
+            _cursor.close();
           }
-          return _result;
-        } finally {
-          _cursor.close();
-        }
+        });
       }
 
       @Override

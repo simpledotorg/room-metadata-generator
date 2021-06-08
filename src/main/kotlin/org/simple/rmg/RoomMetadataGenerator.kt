@@ -5,10 +5,10 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.NodeList
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
-import com.github.javaparser.ast.body.Parameter
 import com.github.javaparser.ast.expr.LambdaExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.expr.NullLiteralExpr
+import com.github.javaparser.ast.expr.ObjectCreationExpr
 import com.github.javaparser.ast.expr.StringLiteralExpr
 import com.github.javaparser.ast.stmt.BlockStmt
 import com.github.javaparser.ast.stmt.ExpressionStmt
@@ -42,7 +42,7 @@ class RoomMetadataGenerator {
 			.filter(String::containsRoomImport)
 			.toList()
 
-		when(val result = generateRoomMetadataForSources(generatedRoomDaoImplementations)) {
+		when (val result = generateRoomMetadataForSources(generatedRoomDaoImplementations)) {
 			is OverloadedMethodsFound -> reportOverloadedMethodsFound(result.methods)
 			is Succeeded -> {
 				val outputCsvFile = Paths.get(outputCsvPath).toFile()
@@ -162,11 +162,13 @@ class RoomMetadataGenerator {
 				val originalMethodBody = methodDeclaration.body.get().clone()
 				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
 
-				val newMethodBody = ReturnStmt(MethodCallExpr(
-					measureMethod.nameAsString,
-					StringLiteralExpr(methodDeclaration.nameAsString),
-					executionLambda
-				))
+				val newMethodBody = ReturnStmt(
+					MethodCallExpr(
+						measureMethod.nameAsString,
+						StringLiteralExpr(methodDeclaration.nameAsString),
+						executionLambda
+					)
+				)
 
 				methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
 			}
@@ -182,13 +184,50 @@ class RoomMetadataGenerator {
 				}
 				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
 
-				val newMethodBody = ExpressionStmt(MethodCallExpr(
-					measureMethod.nameAsString,
-					StringLiteralExpr(methodDeclaration.nameAsString),
-					executionLambda
-				))
+				val newMethodBody = ExpressionStmt(
+					MethodCallExpr(
+						measureMethod.nameAsString,
+						StringLiteralExpr(methodDeclaration.nameAsString),
+						executionLambda
+					)
+				)
 
 				methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+			}
+
+		// Rx return types
+		classDeclaration
+			.methods
+			.filter { it.type.isRxType() }
+			.onEachIndexed { index, methodDeclaration -> logger.debug("Index: $index, Method: ${methodDeclaration.nameAsString}") }
+			.map { methodDeclaration ->
+				val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
+
+				val rxCreationExpression = rxCreationStatement.expression.get() as MethodCallExpr
+
+				if (rxCreationExpression.scope.get().asNameExpr().nameAsString != "RxRoom") {
+					throw IllegalStateException("Unrecognized Rx return statement: $rxCreationStatement")
+				}
+
+				val callableMethodDeclaration = rxCreationExpression
+					.arguments.first { it is ObjectCreationExpr && it.typeAsString.startsWith("Callable") }
+					.childNodes.first { it is MethodDeclaration && it.nameAsString == "call" } as MethodDeclaration
+
+				methodDeclaration to callableMethodDeclaration
+			}
+			.onEach { (rxMethodDeclaration, callableMethodDeclaration) ->
+				val originalMethodBody = callableMethodDeclaration.body.get().clone()
+				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
+
+				val newMethodBody = ReturnStmt(
+					MethodCallExpr(
+						measureMethod.nameAsString,
+						StringLiteralExpr(rxMethodDeclaration.nameAsString),
+						executionLambda
+					)
+				)
+
+				callableMethodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
 			}
 
 		classDeclaration.addMember(measureMethod)
@@ -201,6 +240,13 @@ private fun Type.isNotRxType(): Boolean {
 	return when {
 		isClassOrInterfaceType -> asClassOrInterfaceType().nameAsString !in rxJavaTypes
 		else -> true
+	}
+}
+
+private fun Type.isRxType(): Boolean {
+	return when {
+		isClassOrInterfaceType -> asClassOrInterfaceType().nameAsString in rxJavaTypes
+		else -> false
 	}
 }
 
