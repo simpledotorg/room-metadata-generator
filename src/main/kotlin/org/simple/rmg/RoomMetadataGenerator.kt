@@ -114,7 +114,7 @@ class RoomMetadataGenerator {
 	fun readMeasureMethod(
 		projectPath: String,
 		sourceSet: String
-	): List<String> {
+	) {
 		val measureMethodCodeTemplate = javaClass
 			.classLoader
 			.getResourceAsStream("MeasureMethod.java")!!
@@ -122,23 +122,23 @@ class RoomMetadataGenerator {
 			.readText()
 		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "source", "kapt", sourceSet)
 
-		val generatedRoomDaoImplementations = moduleGeneratedSourcesDirectory.toFile()
+		val generatedRoomDaoAsts = moduleGeneratedSourcesDirectory.toFile()
 			.walkTopDown()
 			.filter { it.isFile }
 			.filter(File::isJavaSourceFile)
-			.map { it.readText() }
-			.filter(String::containsRoomImport)
+			.map { sourceFile -> sourceFile to sourceFile.readText() }
+			.filter { (_, content) -> content.containsRoomImport() }
+			.map { (sourceFile, content) -> DaoMetadata(sourceFile, StaticJavaParser.parse(content)) }
+			.filter { daoMetadata -> daoMetadata.ast.isGeneratedRoomDao() }
 			.toList()
 
-		val generatedRoomDaoAsts = generatedRoomDaoImplementations
-			.map { StaticJavaParser.parse(it) }
-			.filter(CompilationUnit::isGeneratedRoomDao)
-
 		val transformedAsts = generatedRoomDaoAsts
-			.map { compilationUnit -> transformGeneratedDao(measureMethodCodeTemplate, compilationUnit) }
-			.map(CompilationUnit::toString)
+			.map { daoMetadata ->
+				val transformedAst = transformGeneratedDao(measureMethodCodeTemplate, daoMetadata.ast)
+				daoMetadata.replaceAst(transformedAst)
+			}
 
-		return transformedAsts
+		transformedAsts.forEach { daoMetadata -> daoMetadata.file.writeText(daoMetadata.ast.toString()) }
 	}
 
 	fun transformGeneratedDao(
@@ -286,6 +286,13 @@ private data class MethodInfo(
 		methodName = methodDeclaration.nameAsString,
 		methodLineNumbers = methodDeclaration.range.get().begin.line..methodDeclaration.range.get().end.line
 	)
+}
+
+private data class DaoMetadata(
+	val file: File,
+	val ast: CompilationUnit
+) {
+	fun replaceAst(newAst: CompilationUnit) = copy(ast = newAst)
 }
 
 private fun List<String>.removeUniqueElements(): Set<String> {
