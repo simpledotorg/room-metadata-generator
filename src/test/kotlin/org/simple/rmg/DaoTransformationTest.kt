@@ -43,6 +43,20 @@ class DaoTransformationTest {
 		assertThat(transformedDao).isEqualTo(expectedTransformedDao)
 	}
 
+	@Test
+	fun `running the transformation on an already processed dao should not modify it`() {
+		// given
+		val daoImplementation = readResourceAsAst("test_data/transform/modified/UserRoomDao_Impl.java")
+
+		// when
+		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation)
+
+		// then
+		val expectedTransformedDao = readResourceAsAst("test_data/transform/modified/UserRoomDao_Impl.java")
+
+		assertThat(transformedDao).isEqualTo(expectedTransformedDao)
+	}
+
 	private fun readResourceAsString(resourcePath: String): String {
 		return javaClass.classLoader.getResourceAsStream(resourcePath)!!.reader().readText()
 	}

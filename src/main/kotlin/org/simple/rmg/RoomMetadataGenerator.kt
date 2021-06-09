@@ -153,84 +153,88 @@ class RoomMetadataGenerator {
 			.methods
 			.first()
 
-		// Synchronous non-void returns
-		classDeclaration
-			.methods
-			.filter(MethodDeclaration::isOverriddenPublicMethod)
-			.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
-			.onEach { methodDeclaration ->
-				val originalMethodBody = methodDeclaration.body.get().clone()
-				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
+		// Check is needed in the case of local development where Gradle caching might skip generating new Room code.
+		// When converting this to a Gradle plugin, should add support for the caching mechanism
+		if (!classDeclaration.methods.contains(measureMethod)) {
+			// Synchronous non-void returns
+			classDeclaration
+				.methods
+				.filter(MethodDeclaration::isOverriddenPublicMethod)
+				.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
+				.onEach { methodDeclaration ->
+					val originalMethodBody = methodDeclaration.body.get().clone()
+					val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
 
-				val newMethodBody = ReturnStmt(
-					MethodCallExpr(
-						measureMethod.nameAsString,
-						StringLiteralExpr(methodDeclaration.nameAsString),
-						executionLambda
+					val newMethodBody = ReturnStmt(
+						MethodCallExpr(
+							measureMethod.nameAsString,
+							StringLiteralExpr(methodDeclaration.nameAsString),
+							executionLambda
+						)
 					)
-				)
 
-				methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
-			}
-
-		// Synchronous void returns
-		classDeclaration
-			.methods
-			.filter(MethodDeclaration::isOverriddenPublicMethod)
-			.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
-			.onEach { methodDeclaration ->
-				val originalMethodBody = methodDeclaration.body.get().clone().apply {
-					addStatement(ReturnStmt(NullLiteralExpr()))
-				}
-				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
-
-				val newMethodBody = ExpressionStmt(
-					MethodCallExpr(
-						measureMethod.nameAsString,
-						StringLiteralExpr(methodDeclaration.nameAsString),
-						executionLambda
-					)
-				)
-
-				methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
-			}
-
-		// Rx return types
-		classDeclaration
-			.methods
-			.filter(MethodDeclaration::isOverriddenPublicMethod)
-			.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
-			.map { methodDeclaration ->
-				val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
-
-				val rxCreationExpression = rxCreationStatement.expression.get() as MethodCallExpr
-
-				if (rxCreationExpression.scope.get().asNameExpr().nameAsString != "RxRoom") {
-					throw IllegalStateException("Unrecognized Rx return statement: $rxCreationStatement")
+					methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
 				}
 
-				val callableMethodDeclaration = rxCreationExpression
-					.arguments.first { it is ObjectCreationExpr && it.typeAsString.startsWith("Callable") }
-					.childNodes.first { it is MethodDeclaration && it.nameAsString == "call" } as MethodDeclaration
+			// Synchronous void returns
+			classDeclaration
+				.methods
+				.filter(MethodDeclaration::isOverriddenPublicMethod)
+				.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
+				.onEach { methodDeclaration ->
+					val originalMethodBody = methodDeclaration.body.get().clone().apply {
+						addStatement(ReturnStmt(NullLiteralExpr()))
+					}
+					val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
 
-				methodDeclaration to callableMethodDeclaration
-			}
-			.onEach { (rxMethodDeclaration, callableMethodDeclaration) ->
-				val originalMethodBody = callableMethodDeclaration.body.get().clone()
-				val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
-
-				val newMethodBody = ReturnStmt(
-					MethodCallExpr(
-						measureMethod.nameAsString,
-						StringLiteralExpr(rxMethodDeclaration.nameAsString),
-						executionLambda
+					val newMethodBody = ExpressionStmt(
+						MethodCallExpr(
+							measureMethod.nameAsString,
+							StringLiteralExpr(methodDeclaration.nameAsString),
+							executionLambda
+						)
 					)
-				)
 
-				callableMethodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
-			}
+					methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+				}
 
-		classDeclaration.addMember(measureMethod)
+			// Rx return types
+			classDeclaration
+				.methods
+				.filter(MethodDeclaration::isOverriddenPublicMethod)
+				.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
+				.map { methodDeclaration ->
+					val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
+
+					val rxCreationExpression = rxCreationStatement.expression.get() as MethodCallExpr
+
+					if (rxCreationExpression.scope.get().asNameExpr().nameAsString != "RxRoom") {
+						throw IllegalStateException("Unrecognized Rx return statement: $rxCreationStatement")
+					}
+
+					val callableMethodDeclaration = rxCreationExpression
+						.arguments.first { it is ObjectCreationExpr && it.typeAsString.startsWith("Callable") }
+						.childNodes.first { it is MethodDeclaration && it.nameAsString == "call" } as MethodDeclaration
+
+					methodDeclaration to callableMethodDeclaration
+				}
+				.onEach { (rxMethodDeclaration, callableMethodDeclaration) ->
+					val originalMethodBody = callableMethodDeclaration.body.get().clone()
+					val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
+
+					val newMethodBody = ReturnStmt(
+						MethodCallExpr(
+							measureMethod.nameAsString,
+							StringLiteralExpr(rxMethodDeclaration.nameAsString),
+							executionLambda
+						)
+					)
+
+					callableMethodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+				}
+
+			classDeclaration.addMember(measureMethod)
+		}
 
 		return generatedDao
 	}
