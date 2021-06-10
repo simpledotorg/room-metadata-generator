@@ -3,7 +3,6 @@ package org.simple.rmg
 import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.google.common.truth.Truth.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
@@ -12,6 +11,8 @@ class DaoTransformationTest {
 	private val app = RoomMetadataGenerator()
 
 	private val measureMethodCodeTemplate: String
+
+	private val reporterName = "org.simple.clinic.SqlPerformanceReporter"
 
 	init {
 		measureMethodCodeTemplate = readResourceAsString("MeasureMethod.java")
@@ -23,7 +24,7 @@ class DaoTransformationTest {
 		val daoImplementation = readResourceAsAst("test_data/transform/source/UserRoomDao_Impl.java")
 
 		// when
-		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation)
+		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation, reporterName)
 
 		// then
 		val expectedTransformedDao = readResourceAsAst("test_data/transform/modified/UserRoomDao_Impl.java")
@@ -37,7 +38,7 @@ class DaoTransformationTest {
 		val daoImplementation = readResourceAsAst("test_data/transform/source/BloodPressureMeasurementRoomDao_Impl.java")
 
 		// when
-		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation)
+		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation, reporterName)
 
 		// then
 		val expectedTransformedDao = readResourceAsAst("test_data/transform/modified/BloodPressureMeasurementRoomDao_Impl.java")
@@ -51,7 +52,7 @@ class DaoTransformationTest {
 		val daoImplementation = readResourceAsAst("test_data/transform/modified/UserRoomDao_Impl.java")
 
 		// when
-		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation)
+		val transformedDao = app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation, reporterName)
 
 		// then
 		val expectedTransformedDao = readResourceAsAst("test_data/transform/modified/UserRoomDao_Impl.java")
@@ -66,7 +67,7 @@ class DaoTransformationTest {
 
 		// then
 		assertThrows(RuntimeException::class.java) {
-			app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation)
+			app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation, reporterName)
 		}
 	}
 

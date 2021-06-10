@@ -18,7 +18,7 @@ import java.io.File
 import java.nio.file.Paths
 
 fun main(args: Array<String>) {
-	RoomMetadataGenerator().run(args[0], args[1])
+	RoomMetadataGenerator().run(args[0], args[1], args[2])
 }
 
 private val rxJavaTypes = setOf("Single", "Completable", "Observable", "Flowable")
@@ -44,7 +44,8 @@ class RoomMetadataGenerator {
 
 	fun run(
 		projectPath: String,
-		sourceSet: String
+		sourceSet: String,
+		reporterName: String
 	) {
 		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "source", "kapt", sourceSet)
 
@@ -62,7 +63,7 @@ class RoomMetadataGenerator {
 
 		val transformedAsts = generatedRoomDaoAsts
 			.map { daoMetadata ->
-				val transformedAst = transformGeneratedDao(measureMethodCodeTemplate, daoMetadata.ast.clone())
+				val transformedAst = transformGeneratedDao(measureMethodCodeTemplate, daoMetadata.ast.clone(), reporterName)
 				daoMetadata.replaceAst(transformedAst)
 			}
 
@@ -73,11 +74,16 @@ class RoomMetadataGenerator {
 
 	fun transformGeneratedDao(
 		measureMethodCodeTemplate: String,
-		generatedDao: CompilationUnit
+		generatedDao: CompilationUnit,
+		reporterName: String
 	): CompilationUnit {
 		val classDeclaration = generatedDao.types.first() as ClassOrInterfaceDeclaration
 		val measureMethod = StaticJavaParser
-			.parse(measureMethodCodeTemplate.replace("\$CLASS_NAME\$", classDeclaration.nameAsString))
+			.parse(
+				measureMethodCodeTemplate
+					.replace("\$CLASS_NAME\$", classDeclaration.nameAsString)
+					.replace("\$REPORTER_NAME\$", reporterName)
+			)
 			.types
 			.first()
 			.methods

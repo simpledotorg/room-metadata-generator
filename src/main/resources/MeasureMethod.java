@@ -11,7 +11,7 @@ class MeasureMethod {
         result = block.invoke();
         final java.time.Duration timeTaken = java.time.Duration.ofMillis(System.currentTimeMillis() - start);
 
-        org.simple.clinic.SqlPerformanceReporter.report("$CLASS_NAME$", methodName, timeTaken);
+        $REPORTER_NAME$.report("$CLASS_NAME$", methodName, timeTaken);
 
         return result;
     }
