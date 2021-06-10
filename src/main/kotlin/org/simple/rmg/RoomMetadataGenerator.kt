@@ -48,6 +48,8 @@ class RoomMetadataGenerator {
 	) {
 		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "source", "kapt", sourceSet)
 
+		logger.info("Processing room generated sources at $moduleGeneratedSourcesDirectory")
+
 		val generatedRoomDaoAsts = moduleGeneratedSourcesDirectory.toFile()
 			.walkTopDown()
 			.filter { it.isFile }
@@ -64,7 +66,9 @@ class RoomMetadataGenerator {
 				daoMetadata.replaceAst(transformedAst)
 			}
 
-		transformedAsts.forEach { daoMetadata -> daoMetadata.file.writeText(daoMetadata.ast.toString()) }
+		transformedAsts
+			.onEach { daoMetadata -> logger.info("Writing transformed DAO to ${daoMetadata.file.path}") }
+			.forEach { daoMetadata -> daoMetadata.file.writeText(daoMetadata.ast.toString()) }
 	}
 
 	fun transformGeneratedDao(
