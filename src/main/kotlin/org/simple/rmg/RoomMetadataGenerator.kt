@@ -23,19 +23,29 @@ fun main(args: Array<String>) {
 
 private val rxJavaTypes = setOf("Single", "Completable", "Observable", "Flowable")
 
+private typealias MethodCategoryFilter = (MethodDeclaration) -> Boolean
+private typealias MethodTransformer = (MethodDeclaration, MethodDeclaration) -> Unit
+
 class RoomMetadataGenerator {
 
 	private val logger = logger<RoomMetadataGenerator>()
+
+	private val measureMethodCodeTemplate = javaClass
+		.classLoader
+		.getResourceAsStream("MeasureMethod.java")!!
+		.reader()
+		.readText()
+
+	private val methodTransformerLookup: Set<Pair<MethodCategoryFilter, MethodTransformer>> = setOf(
+		::isNonVoidReturn to { method, measureMethod -> transformNonVoidReturnMethod(method, measureMethod) },
+		::isVoidReturn to { method, measureMethod -> transformVoidReturn(method, measureMethod) },
+		::isRxReturn to { method, measureMethod -> transformRxReturn(method, measureMethod) }
+	)
 
 	fun run(
 		projectPath: String,
 		sourceSet: String
 	) {
-		val measureMethodCodeTemplate = javaClass
-			.classLoader
-			.getResourceAsStream("MeasureMethod.java")!!
-			.reader()
-			.readText()
 		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "source", "kapt", sourceSet)
 
 		val generatedRoomDaoAsts = moduleGeneratedSourcesDirectory.toFile()
@@ -76,42 +86,13 @@ class RoomMetadataGenerator {
 				.methods
 				.filter(MethodDeclaration::isOverriddenPublicMethod)
 
-			// Synchronous non-void returns
-			val nonVoidReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
-			nonVoidReturns
+			methodsToTransform
 				.onEach { methodDeclaration ->
-					val methodName = methodDeclaration.nameAsString
-					instrumentNonVoidReturn(methodDeclaration, measureMethod, methodName)
-				}
+					val transformer = methodTransformerLookup
+						.find { (filter, _) -> filter.invoke(methodDeclaration) }
+						?.second
 
-			// Synchronous void returns
-			val voidReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
-			voidReturns
-				.onEach { methodDeclaration ->
-					val methodName = methodDeclaration.nameAsString
-					instrumentVoidReturn(methodDeclaration, measureMethod, methodName)
-				}
-
-			// Rx return types
-			val rxReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
-			rxReturns
-				.map { methodDeclaration ->
-					val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
-
-					val rxCreationExpression = rxCreationStatement.expression.get() as MethodCallExpr
-
-					if (rxCreationExpression.scope.get().asNameExpr().nameAsString != "RxRoom") {
-						throw IllegalStateException("Unrecognized Rx return statement: $rxCreationStatement")
-					}
-
-					val callableMethodDeclaration = rxCreationExpression
-						.arguments.first { it is ObjectCreationExpr && it.typeAsString.startsWith("Callable") }
-						.childNodes.first { it is MethodDeclaration && it.nameAsString == "call" } as MethodDeclaration
-
-					methodDeclaration to callableMethodDeclaration
-				}
-				.onEach { (rxMethodDeclaration, callableMethodDeclaration) ->
-					instrumentNonVoidReturn(callableMethodDeclaration, measureMethod, rxMethodDeclaration.nameAsString)
+					transformer?.invoke(methodDeclaration, measureMethod)
 				}
 
 			classDeclaration.addMember(measureMethod)
@@ -119,6 +100,49 @@ class RoomMetadataGenerator {
 
 		return generatedDao
 	}
+
+	private fun transformRxReturn(
+		methodDeclaration: MethodDeclaration,
+		measureMethod: MethodDeclaration
+	) {
+		val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
+
+		val rxCreationExpression = rxCreationStatement.expression.get() as MethodCallExpr
+
+		if (rxCreationExpression.scope.get().asNameExpr().nameAsString != "RxRoom") {
+			throw IllegalStateException("Unrecognized Rx return statement: $rxCreationStatement")
+		}
+
+		val callableMethodDeclaration = rxCreationExpression
+			.arguments.first { it is ObjectCreationExpr && it.typeAsString.startsWith("Callable") }
+			.childNodes.first { it is MethodDeclaration && it.nameAsString == "call" } as MethodDeclaration
+		instrumentNonVoidReturn(callableMethodDeclaration, measureMethod, methodDeclaration.nameAsString)
+	}
+
+	private fun isRxReturn(method: MethodDeclaration) =
+		method.type.isNotRoomDatasource() && method.type.isRxType()
+
+	private fun transformVoidReturn(
+		methodDeclaration: MethodDeclaration,
+		measureMethod: MethodDeclaration
+	) {
+		val methodName = methodDeclaration.nameAsString
+		instrumentVoidReturn(methodDeclaration, measureMethod, methodName)
+	}
+
+	private fun isVoidReturn(method: MethodDeclaration) =
+		method.type.isNotRoomDatasource() && method.type.isNotRxType() && method.type.isVoidType
+
+	private fun transformNonVoidReturnMethod(
+		methodDeclaration: MethodDeclaration,
+		measureMethod: MethodDeclaration
+	) {
+		val methodName = methodDeclaration.nameAsString
+		instrumentNonVoidReturn(methodDeclaration, measureMethod, methodName)
+	}
+
+	private fun isNonVoidReturn(method: MethodDeclaration) =
+		method.type.isNotRoomDatasource() && method.type.isNotRxType() && !method.type.isVoidType
 
 	private fun instrumentNonVoidReturn(
 		methodDeclaration: MethodDeclaration,
