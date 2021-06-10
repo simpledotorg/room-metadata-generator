@@ -83,13 +83,23 @@ class RoomMetadataGenerator {
 			.methods
 			.first()
 
+		val methodsToTransform = classDeclaration
+			.methods
+			.filter(MethodDeclaration::isOverriddenPublicMethod)
+
+		val allMethodNames = methodsToTransform.map { it.nameAsString }
+		val methodsWithOverloads = allMethodNames.removeUniqueElements()
+
+		if (methodsWithOverloads.isNotEmpty()) {
+			val message =
+				"Found overloaded methods [${methodsWithOverloads.joinToString()}] in DAO: ${classDeclaration.nameAsString}"
+
+			throw RuntimeException(message)
+		}
+
 		// Check is needed in the case of local development where Gradle caching might skip generating new Room code.
 		// When converting this to a Gradle plugin, should add support for the caching mechanism
 		if (!classDeclaration.methods.contains(measureMethod)) {
-			val methodsToTransform = classDeclaration
-				.methods
-				.filter(MethodDeclaration::isOverriddenPublicMethod)
-
 			methodsToTransform
 				.onEach { methodDeclaration ->
 					val transformer = methodTransformerLookup
@@ -237,4 +247,14 @@ private data class DaoMetadata(
 	val ast: CompilationUnit
 ) {
 	fun replaceAst(newAst: CompilationUnit) = copy(ast = newAst)
+}
+
+private fun List<String>.removeUniqueElements(): Set<String> {
+	return associateBy(
+		keySelector = { it },
+		valueTransform = { methodName -> this.count { it == methodName } }
+	)
+		.filterValues { countOfMethodNames -> countOfMethodNames > 1 }
+		.keys
+		.toSet()
 }

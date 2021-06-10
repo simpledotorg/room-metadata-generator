@@ -3,6 +3,8 @@ package org.simple.rmg
 import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.google.common.truth.Truth.assertThat
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class DaoTransformationTest {
@@ -55,6 +57,17 @@ class DaoTransformationTest {
 		val expectedTransformedDao = readResourceAsAst("test_data/transform/modified/UserRoomDao_Impl.java")
 
 		assertThat(transformedDao).isEqualTo(expectedTransformedDao)
+	}
+
+	@Test
+	fun `transforming a DAO with overloads must throw an error`() {
+		// given
+		val daoImplementation = readResourceAsAst("test_data/transform/source/UserRoomDaoWithOverloads_Impl.java")
+
+		// then
+		assertThrows(RuntimeException::class.java) {
+			app.transformGeneratedDao(measureMethodCodeTemplate, daoImplementation)
+		}
 	}
 
 	private fun readResourceAsString(resourcePath: String): String {
