@@ -80,18 +80,8 @@ class RoomMetadataGenerator {
 			val nonVoidReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
 			nonVoidReturns
 				.onEach { methodDeclaration ->
-					val originalMethodBody = methodDeclaration.body.get().clone()
-					val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
-
-					val newMethodBody = ReturnStmt(
-						MethodCallExpr(
-							measureMethod.nameAsString,
-							StringLiteralExpr(methodDeclaration.nameAsString),
-							executionLambda
-						)
-					)
-
-					methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+					val methodName = methodDeclaration.nameAsString
+					instrumentNonVoidReturn(methodDeclaration, measureMethod, methodName)
 				}
 
 			// Synchronous void returns
@@ -133,24 +123,32 @@ class RoomMetadataGenerator {
 					methodDeclaration to callableMethodDeclaration
 				}
 				.onEach { (rxMethodDeclaration, callableMethodDeclaration) ->
-					val originalMethodBody = callableMethodDeclaration.body.get().clone()
-					val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
-
-					val newMethodBody = ReturnStmt(
-						MethodCallExpr(
-							measureMethod.nameAsString,
-							StringLiteralExpr(rxMethodDeclaration.nameAsString),
-							executionLambda
-						)
-					)
-
-					callableMethodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+					instrumentNonVoidReturn(callableMethodDeclaration, measureMethod, rxMethodDeclaration.nameAsString)
 				}
 
 			classDeclaration.addMember(measureMethod)
 		}
 
 		return generatedDao
+	}
+
+	private fun instrumentNonVoidReturn(
+		methodDeclaration: MethodDeclaration,
+		measureMethod: MethodDeclaration,
+		methodName: String
+	) {
+		val originalMethodBody = methodDeclaration.body.get().clone()
+		val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
+
+		val newMethodBody = ReturnStmt(
+			MethodCallExpr(
+				measureMethod.nameAsString,
+				StringLiteralExpr(methodName),
+				executionLambda
+			)
+		)
+
+		methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
 	}
 }
 
