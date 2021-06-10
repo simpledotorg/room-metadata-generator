@@ -18,7 +18,7 @@ import java.io.File
 import java.nio.file.Paths
 
 fun main(args: Array<String>) {
-	RoomMetadataGenerator().readMeasureMethod(args[0], args[1])
+	RoomMetadataGenerator().run(args[0], args[1])
 }
 
 private val rxJavaTypes = setOf("Single", "Completable", "Observable", "Flowable")
@@ -27,7 +27,7 @@ class RoomMetadataGenerator {
 
 	private val logger = logger<RoomMetadataGenerator>()
 
-	fun readMeasureMethod(
+	fun run(
 		projectPath: String,
 		sourceSet: String
 	) {
