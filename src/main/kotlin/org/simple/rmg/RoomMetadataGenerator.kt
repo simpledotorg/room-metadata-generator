@@ -88,20 +88,8 @@ class RoomMetadataGenerator {
 			val voidReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
 			voidReturns
 				.onEach { methodDeclaration ->
-					val originalMethodBody = methodDeclaration.body.get().clone().apply {
-						addStatement(ReturnStmt(NullLiteralExpr()))
-					}
-					val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
-
-					val newMethodBody = ExpressionStmt(
-						MethodCallExpr(
-							measureMethod.nameAsString,
-							StringLiteralExpr(methodDeclaration.nameAsString),
-							executionLambda
-						)
-					)
-
-					methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+					val methodName = methodDeclaration.nameAsString
+					instrumentVoidReturn(methodDeclaration, measureMethod, methodName)
 				}
 
 			// Rx return types
@@ -141,6 +129,27 @@ class RoomMetadataGenerator {
 		val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
 
 		val newMethodBody = ReturnStmt(
+			MethodCallExpr(
+				measureMethod.nameAsString,
+				StringLiteralExpr(methodName),
+				executionLambda
+			)
+		)
+
+		methodDeclaration.setBody(BlockStmt(NodeList.nodeList(newMethodBody)))
+	}
+
+	private fun instrumentVoidReturn(
+		methodDeclaration: MethodDeclaration,
+		measureMethod: MethodDeclaration,
+		methodName: String?
+	) {
+		val originalMethodBody = methodDeclaration.body.get().clone().apply {
+			addStatement(ReturnStmt(NullLiteralExpr()))
+		}
+		val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
+
+		val newMethodBody = ExpressionStmt(
 			MethodCallExpr(
 				measureMethod.nameAsString,
 				StringLiteralExpr(methodName),
