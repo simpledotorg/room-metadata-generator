@@ -77,8 +77,8 @@ class RoomMetadataGenerator {
 				.filter(MethodDeclaration::isOverriddenPublicMethod)
 
 			// Synchronous non-void returns
-			methodsToTransform
-				.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
+			val nonVoidReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
+			nonVoidReturns
 				.onEach { methodDeclaration ->
 					val originalMethodBody = methodDeclaration.body.get().clone()
 					val executionLambda = LambdaExpr(NodeList(), originalMethodBody)
@@ -95,8 +95,8 @@ class RoomMetadataGenerator {
 				}
 
 			// Synchronous void returns
-			methodsToTransform
-				.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
+			val voidReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
+			voidReturns
 				.onEach { methodDeclaration ->
 					val originalMethodBody = methodDeclaration.body.get().clone().apply {
 						addStatement(ReturnStmt(NullLiteralExpr()))
@@ -115,8 +115,8 @@ class RoomMetadataGenerator {
 				}
 
 			// Rx return types
-			methodsToTransform
-				.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
+			val rxReturns = methodsToTransform.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
+			rxReturns
 				.map { methodDeclaration ->
 					val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
 
