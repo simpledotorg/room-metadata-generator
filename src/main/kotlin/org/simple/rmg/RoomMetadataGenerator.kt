@@ -72,10 +72,12 @@ class RoomMetadataGenerator {
 		// Check is needed in the case of local development where Gradle caching might skip generating new Room code.
 		// When converting this to a Gradle plugin, should add support for the caching mechanism
 		if (!classDeclaration.methods.contains(measureMethod)) {
-			// Synchronous non-void returns
-			classDeclaration
+			val methodsToTransform = classDeclaration
 				.methods
 				.filter(MethodDeclaration::isOverriddenPublicMethod)
+
+			// Synchronous non-void returns
+			methodsToTransform
 				.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && !it.type.isVoidType }
 				.onEach { methodDeclaration ->
 					val originalMethodBody = methodDeclaration.body.get().clone()
@@ -93,9 +95,7 @@ class RoomMetadataGenerator {
 				}
 
 			// Synchronous void returns
-			classDeclaration
-				.methods
-				.filter(MethodDeclaration::isOverriddenPublicMethod)
+			methodsToTransform
 				.filter { it.type.isNotRoomDatasource() && it.type.isNotRxType() && it.type.isVoidType }
 				.onEach { methodDeclaration ->
 					val originalMethodBody = methodDeclaration.body.get().clone().apply {
@@ -115,9 +115,7 @@ class RoomMetadataGenerator {
 				}
 
 			// Rx return types
-			classDeclaration
-				.methods
-				.filter(MethodDeclaration::isOverriddenPublicMethod)
+			methodsToTransform
 				.filter { it.type.isNotRoomDatasource() && it.type.isRxType() }
 				.map { methodDeclaration ->
 					val rxCreationStatement = methodDeclaration.body.get().statements.first { it is ReturnStmt } as ReturnStmt
