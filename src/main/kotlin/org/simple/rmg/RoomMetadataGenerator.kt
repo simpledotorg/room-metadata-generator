@@ -50,7 +50,7 @@ class RoomMetadataGenerator {
 
 		val transformedAsts = generatedRoomDaoAsts
 			.map { daoMetadata ->
-				val transformedAst = transformGeneratedDao(measureMethodCodeTemplate, daoMetadata.ast)
+				val transformedAst = transformGeneratedDao(measureMethodCodeTemplate, daoMetadata.ast.clone())
 				daoMetadata.replaceAst(transformedAst)
 			}
 
