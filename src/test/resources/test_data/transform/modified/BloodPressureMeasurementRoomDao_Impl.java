@@ -259,9 +259,9 @@ public final class BloodPressureMeasurementRoomDao_Impl implements BloodPressure
     private static <T> T measureAndReport(final String methodName, final kotlin.jvm.functions.Function0<T> block) {
         final long start = System.currentTimeMillis();
         final T result;
+        org.simple.clinic.SqlPerformanceReporter.begin("BloodPressureMeasurementRoomDao_Impl", start, methodName);
         result = block.invoke();
-        final java.time.Duration timeTaken = java.time.Duration.ofMillis(System.currentTimeMillis() - start);
-        org.simple.clinic.SqlPerformanceReporter.report("BloodPressureMeasurementRoomDao_Impl", methodName, timeTaken);
+        org.simple.clinic.SqlPerformanceReporter.end("BloodPressureMeasurementRoomDao_Impl", start, methodName);
         return result;
     }
 }

@@ -575,9 +575,9 @@ public final class UserRoomDao_Impl extends User.RoomDao {
   private static <T> T measureAndReport(final String methodName, final kotlin.jvm.functions.Function0<T> block) {
     final long start = System.currentTimeMillis();
     final T result;
+    org.simple.clinic.SqlPerformanceReporter.begin("UserRoomDao_Impl", start, methodName);
     result = block.invoke();
-    final java.time.Duration timeTaken = java.time.Duration.ofMillis(System.currentTimeMillis() - start);
-    org.simple.clinic.SqlPerformanceReporter.report("UserRoomDao_Impl", methodName, timeTaken);
+    org.simple.clinic.SqlPerformanceReporter.end("UserRoomDao_Impl", start, methodName);
     return result;
   }
 }

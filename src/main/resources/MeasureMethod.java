@@ -8,10 +8,10 @@ class MeasureMethod {
     ) {
         final long start = System.currentTimeMillis();
         final T result;
+        $REPORTER_NAME$.begin("$CLASS_NAME$", start, methodName);
         result = block.invoke();
-        final java.time.Duration timeTaken = java.time.Duration.ofMillis(System.currentTimeMillis() - start);
 
-        $REPORTER_NAME$.report("$CLASS_NAME$", methodName, timeTaken);
+        $REPORTER_NAME$.end("$CLASS_NAME$", start, methodName);
 
         return result;
     }
