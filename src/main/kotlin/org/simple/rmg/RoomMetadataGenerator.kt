@@ -47,7 +47,7 @@ class RoomMetadataGenerator {
 		sourceSet: String,
 		reporterName: String
 	) {
-		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "source", "kapt", sourceSet)
+		val moduleGeneratedSourcesDirectory = Paths.get(projectPath, "build", "generated", "ksp", sourceSet, "java")
 
 		logger.info("Processing room generated sources at $moduleGeneratedSourcesDirectory")
 
