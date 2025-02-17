@@ -71,20 +71,6 @@ class DaoTransformationTest {
 		}
 	}
 
-	@Test
-	fun `running transformation should not modify room database file`() {
-		// given
-		val databaseImplementation = readResourceAsAst("test_data/transform/source/AppDatabase_Impl.java")
-
-		// when
-		val transformedDatabaseImplementation = app.transformGeneratedDao(measureMethodCodeTemplate, databaseImplementation, reporterName)
-
-		// then
-		val expectedDatabaseImplementation = readResourceAsAst("test_data/transform/source/AppDatabase_Impl.java")
-
-		assertThat(transformedDatabaseImplementation).isEqualTo(expectedDatabaseImplementation)
-	}
-
 	private fun readResourceAsString(resourcePath: String): String {
 		return javaClass.classLoader.getResourceAsStream(resourcePath)!!.reader().readText()
 	}

@@ -17,7 +17,6 @@ import com.github.javaparser.ast.type.Type
 import java.io.File
 import java.nio.file.Paths
 
-
 fun main(args: Array<String>) {
 	RoomMetadataGenerator().run(args[0], args[1], args[2])
 }
@@ -79,13 +78,6 @@ class RoomMetadataGenerator {
 		reporterName: String
 	): CompilationUnit {
 		val classDeclaration = generatedDao.types.first() as ClassOrInterfaceDeclaration
-    val isRoomDatabaseFile = classDeclaration.extendedTypes.any { extendedType ->
-      extendedType.nameAsString == "RoomDatabase"
-    }
-    if (isRoomDatabaseFile) {
-      return generatedDao
-    }
-
 		val measureMethod = StaticJavaParser
 			.parse(
 				measureMethodCodeTemplate
